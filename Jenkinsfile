@@ -1,7 +1,7 @@
 pipeline {
   agent any
   environment {
-    DEPLOYMENT = readYaml(file: './nais.yaml')
+    DEPLOYMENT = readYaml(file: './nais/base/kustomization.yaml')
     APPLICATION_NAME = "${DEPLOYMENT.commonLabels.app}"
     ZONE = "${DEPLOYMENT.commonAnnotations.zone}"
     VERSION = sh(label: 'Get git sha1 as version', script: 'git rev-parse --short HEAD', returnStdout: true).trim()
@@ -31,8 +31,8 @@ pipeline {
         """
 
         withDockerRegistry(
-          credentialsId: 'repo.adeo.no',
-          url: "https://${DOCKER_REPO}"
+                credentialsId: 'repo.adeo.no',
+                url: "https://${DOCKER_REPO}"
         ) {
           sh label: 'Build and push Docker image', script: """
             docker build . --pull -t ${DOCKER_IMAGE_VERSION}
@@ -41,19 +41,25 @@ pipeline {
         }
 
         sh label: 'Set image version on base overlay', script: """
-          sed -i 's/latest/${VERSION}/' ./nais.yaml
+          sed -i 's/latest/${VERSION}/' ./nais/base/nais.yaml
+        """
+        sh label: 'Prepare dev service contract', script: """
+           kustomize build ./nais/dev -o ./nais/nais-dev-deploy.yaml &&  cat ./nais/nais-dev-deploy.yaml
+        """
+        sh label: 'Prepare prod service contract', script: """
+           kustomize build ./nais/prod -o ./nais/nais-prod-deploy.yaml &&  cat ./nais/nais-prod-deploy.yaml
         """
       }
 
       post {
         always {
           publishHTML target: [
-            allowMissing: true,
-            alwaysLinkToLastBuild: false,
-            keepAll: true,
-            reportDir: 'build/reports/tests/test',
-            reportFiles: 'index.html',
-            reportName: 'Test coverage'
+                  allowMissing: true,
+                  alwaysLinkToLastBuild: false,
+                  keepAll: true,
+                  reportDir: 'build/reports/tests/test',
+                  reportFiles: 'index.html',
+                  reportName: 'Test coverage'
           ]
 
           junit 'build/test-results/test/*.xml'
@@ -70,7 +76,7 @@ pipeline {
 
             sh label: 'Deploy with kubectl', script: """
               kubectl config use-context dev-${env.ZONE}
-              kubectl apply  -f ./nais.yaml --wait
+              kubectl apply -f ./nais/nais-dev-deploy.yaml --wait
               kubectl rollout status -w deployment/${APPLICATION_NAME}
             """
 
@@ -91,9 +97,9 @@ pipeline {
                 beforeAgent true
                 expression {
                   sh(
-                    label: 'Does the repository define any UAT tests?',
-                    script: 'test -f ./scripts/test/uat',
-                    returnStatus: true
+                          label: 'Does the repository define any UAT tests?',
+                          script: 'test -f ./scripts/test/uat',
+                          returnStatus: true
                   ) == 0
                 }
               }
@@ -112,9 +118,9 @@ pipeline {
                 beforeAgent true
                 expression {
                   sh(
-                    label: 'Does the repository define any integration tests?',
-                    script: 'test -f ./scripts/test/integration',
-                    returnStatus: true
+                          label: 'Does the repository define any integration tests?',
+                          script: 'test -f ./scripts/test/integration',
+                          returnStatus: true
                   ) == 0
                 }
               }
@@ -133,9 +139,9 @@ pipeline {
                 beforeAgent true
                 expression {
                   sh(
-                    label: 'Does the repository define any benchmark tests?',
-                    script: 'test -f ./scripts/test/benchmark',
-                    returnStatus: true
+                          label: 'Does the repository define any benchmark tests?',
+                          script: 'test -f ./scripts/test/benchmark',
+                          returnStatus: true
                   ) == 0
                 }
               }
@@ -157,7 +163,7 @@ pipeline {
       steps {
         sh label: 'Deploy with kubectl', script: """
           kubectl config use-context prod-${env.ZONE}
-          kubectl apply  -f ./nais.yaml --wait
+          kubectl apply  -f ./nais/nais-prod-deploy.yaml --wait
           kubectl rollout status -w deployment/${APPLICATION_NAME}
         """
 
