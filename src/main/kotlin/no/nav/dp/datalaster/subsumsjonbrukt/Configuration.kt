@@ -7,14 +7,19 @@ import com.natpryce.konfig.Key
 import com.natpryce.konfig.intType
 import com.natpryce.konfig.overriding
 import com.natpryce.konfig.stringType
+import no.nav.dagpenger.ktor.auth.ApiKeyVerifier
 
 private val localProperties = ConfigurationMap(
     mapOf(
         "application.profile" to "LOCAL",
         "application.httpPort" to "8080",
         "kafka.bootstrapServer" to "localhost:9092",
+        "regel.api.url" to "http://dp-regel-api.nais.preprod.local",
         "srvdp.datalaster.subsumsjonbrukt.username" to "srvdp-datalaster-s",
-        "srvdp.datalaster.subsumsjonbrukt.password" to "srvdp-passord"
+        "srvdp.datalaster.subsumsjonbrukt.password" to "srvdp-passord",
+        "auth.regelapi.secret" to "secret",
+        "auth.regelapi.key" to "key"
+
     )
 )
 
@@ -23,8 +28,11 @@ private val devProperties = ConfigurationMap(
         "application.profile" to "DEV",
         "application.httpPort" to "8080",
         "kafka.bootstrapServer" to "b27apvl00045.preprod.local:8443,b27apvl00046.preprod.local:8443,b27apvl00047.preprod.local:8443",
+        "regel.api.url" to "http://dp-regel-api",
         "srvdp.datalaster.subsumsjonbrukt.username" to "srvdp-datalaster-s",
-        "srvdp.datalaster.subsumsjonbrukt.password" to "srvdp-passord"
+        "srvdp.datalaster.subsumsjonbrukt.password" to "srvdp-passord",
+        "auth.regelapi.secret" to "secret",
+        "auth.regelapi.key" to "key"
     )
 )
 
@@ -33,13 +41,25 @@ private val prodProperties = ConfigurationMap(
         "application.profile" to "PROD",
         "application.httpPort" to "8080",
         "kafka.bootstrapServer" to "a01apvl00145.adeo.no:8443,a01apvl00146.adeo.no:8443,a01apvl00147.adeo.no:8443,a01apvl00149.adeo.no:8443",
+        "regel.api.url" to "http://dp-regel-api",
         "srvdp.datalaster.subsumsjonbrukt.username" to "srvdp-datalaster-s",
-        "srvdp.datalaster.subsumsjonbrukt.password" to "srvdp-passord"
+        "srvdp.datalaster.subsumsjonbrukt.password" to "srvdp-passord",
+        "auth.regelapi.secret" to "secret",
+        "auth.regelapi.key" to "key"
     )
 )
 
 data class Configuration(
-    val application: Application = Application()
+    val application: Application = Application(),
+    val kafka: Kafka = Kafka(),
+    val regelApiUrl: String = config()[Key("regel.api.url", stringType)],
+    val auth: Auth = Auth()
+)
+
+data class Kafka(
+    val bootstrapServer: String = config()[Key("kafka.bootstrapServer", stringType)],
+    val username: String = config()[Key("srvdp.datalaster.subsumsjonbrukt.username", stringType)],
+    val password: String = config()[Key("srvdp.datalaster.subsumsjonbrukt.password", stringType)]
 )
 
 data class Application(
@@ -48,6 +68,13 @@ data class Application(
     val username: String = config()[Key("srvdp.datalaster.subsumsjonbrukt.username", stringType)],
     val password: String = config()[Key("srvdp.datalaster.subsumsjonbrukt.password", stringType)]
 )
+
+class Auth(
+    regelApiSecret: String = config()[Key("auth.regelapi.secret", stringType)],
+    regelApiKeyPlain: String = config()[Key("auth.regelapi.key", stringType)]
+) {
+    val regelApiKey = ApiKeyVerifier(regelApiSecret).generate(regelApiKeyPlain)
+}
 
 enum class Profile {
     LOCAL, DEV, PROD

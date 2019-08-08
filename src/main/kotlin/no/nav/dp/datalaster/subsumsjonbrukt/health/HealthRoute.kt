@@ -4,6 +4,7 @@ import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
 import io.ktor.features.DefaultHeaders
+import io.ktor.http.HttpStatusCode
 import io.ktor.response.respondText
 import io.ktor.response.respondTextWriter
 import io.ktor.routing.Route
@@ -16,6 +17,8 @@ import io.ktor.server.netty.NettyApplicationEngine
 import io.prometheus.client.CollectorRegistry
 import io.prometheus.client.exporter.common.TextFormat
 import io.prometheus.client.hotspot.DefaultExports
+import kotlinx.coroutines.isActive
+import no.nav.dp.datalaster.subsumsjonbrukt.DatalasterSubsumsjonbruktStream
 
 object HealthServer {
     suspend fun startServer(port: Int): NettyApplicationEngine {
@@ -48,7 +51,11 @@ fun Route.healthRoutes() {
 
     route("/isAlive") {
         get {
-            call.respondText(text = "ALIVE", contentType = io.ktor.http.ContentType.Text.Plain)
+            if (DatalasterSubsumsjonbruktStream.isActive) {
+                call.respondText(text = "ALIVE", contentType = io.ktor.http.ContentType.Text.Plain)
+            } else {
+                call.respondText(status = HttpStatusCode.InternalServerError, text = "NOT ALIVE", contentType = io.ktor.http.ContentType.Text.Plain)
+            }
         }
     }
     route("/isReady") {
