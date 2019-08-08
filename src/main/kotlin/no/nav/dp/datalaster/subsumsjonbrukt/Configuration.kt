@@ -14,7 +14,7 @@ private val localProperties = ConfigurationMap(
         "application.profile" to "LOCAL",
         "application.httpPort" to "8080",
         "kafka.bootstrapServer" to "localhost:9092",
-        "srvdp.datalaster.subsumsjonbrukt.username" to "srvdp-vedtakresultat",
+        "srvdp.datalaster.subsumsjonbrukt.username" to "srvdp-datalaster-s",
         "srvdp.datalaster.subsumsjonbrukt.password" to "srvdp-passord"
     )
 )
@@ -24,7 +24,7 @@ private val devProperties = ConfigurationMap(
         "application.profile" to "DEV",
         "application.httpPort" to "8080",
         "kafka.bootstrapServer" to "b27apvl00045.preprod.local:8443,b27apvl00046.preprod.local:8443,b27apvl00047.preprod.local:8443",
-        "srvdp.datalaster.subsumsjonbrukt.username" to "srvdp-vedtakresultat",
+        "srvdp.datalaster.subsumsjonbrukt.username" to "srvdp-datalaster-s",
         "srvdp.datalaster.subsumsjonbrukt.password" to "srvdp-passord"
     )
 )
@@ -34,7 +34,7 @@ private val prodProperties = ConfigurationMap(
         "application.profile" to "PROD",
         "application.httpPort" to "8080",
         "kafka.bootstrapServer" to "a01apvl00145.adeo.no:8443,a01apvl00146.adeo.no:8443,a01apvl00147.adeo.no:8443,a01apvl00149.adeo.no:8443",
-        "srvdp.datalaster.subsumsjonbrukt.username" to "srvdp-vedtakresultat",
+        "srvdp.datalaster.subsumsjonbrukt.username" to "srvdp-datalaster-s",
         "srvdp.datalaster.subsumsjonbrukt.password" to "srvdp-passord"
     )
 )
