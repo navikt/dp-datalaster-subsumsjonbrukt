@@ -1,0 +1,30 @@
+apiVersion: "nais.io/v1alpha1"
+kind: "Application"
+metadata:
+  name: dp-datalaster-subsumsjonbrukt
+  namespace: default
+  labels:
+    team: teamdagpenger
+spec:
+  image: repo.adeo.no:5443/dp-datalaster-subsumsjonbrukt:latest
+  port: 8080
+  liveness:
+    path: /isAlive
+  readiness:
+    path: /isReady
+  prometheus:
+    enabled: true
+    path: /metrics
+  replicas:
+    min: 1
+    max: 1
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 384Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  vault:
+    enabled: true
+

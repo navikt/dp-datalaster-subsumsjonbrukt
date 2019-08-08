@@ -16,11 +16,18 @@ repositories {
 
 application {
     applicationName = "dp-datalaster-subsumsjonsbrukt"
-    mainClassName = "no.nav.dagpenger.datalaster.subsumsjonbrukt.DatalasterSubsumsjonbruktAppKt"
+    mainClassName = "no.nav.dp.datalaster.subsumsjonbrukt.DatalasterSubsumsjonbruktAppKt"
 }
 
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
+
+    // ktor
+    implementation(Ktor.server)
+    implementation(Ktor.serverNetty)
+
+    // Miljøkonfigurasjon
+    implementation(Konfig.konfig)
 
     // Logging
     implementation(Kotlin.Logging.kotlinLogging)
@@ -28,6 +35,32 @@ dependencies {
     implementation(Log4j2.core)
     implementation(Log4j2.slf4j)
     implementation(Log4j2.Logstash.logstashLayout)
+
+    // prometheus
+    implementation(Prometheus.common)
+    implementation(Prometheus.hotspot)
+    implementation(Prometheus.log4j2)
+
+    // testing
+    testImplementation(kotlin("test"))
+    testImplementation(Ktor.ktorTest)
+    testImplementation(Junit5.api)
+    testRuntimeOnly(Junit5.engine)
+    testRuntimeOnly(Junit5.vintageEngine)
+    testImplementation(Junit5.kotlinRunner)
+    testImplementation(TestContainers.postgresql)
+    testImplementation(Mockk.mockk)
+}
+
+configurations {
+    "implementation" {
+        exclude(group = "org.slf4j", module = "slf4j-log4j12")
+        exclude(group = "ch.qos.logback", module = "logback-classic")
+    }
+    "testImplementation" {
+        exclude(group = "org.slf4j", module = "slf4j-log4j12")
+        exclude(group = "ch.qos.logback", module = "logback-classic")
+    }
 }
 
 java {
@@ -56,11 +89,11 @@ compileTestKotlin.kotlinOptions {
 
 spotless {
     kotlin {
-        ktlint("0.33.0")
+        ktlint(Klint.version)
     }
     kotlinGradle {
         target("*.gradle.kts")
-        ktlint("0.33.0")
+        ktlint(Klint.version)
     }
 }
 

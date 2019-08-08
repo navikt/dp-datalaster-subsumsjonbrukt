@@ -5,3 +5,6 @@ out
 .idea
 # Ignore Gradle build output directory
 build
+
+#ignore kotlintest
+.kotlintest
