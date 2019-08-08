@@ -41,13 +41,7 @@ pipeline {
         }
 
         sh label: 'Set image version on base overlay', script: """
-          sed -i 's/latest/${VERSION}/' ./nais/base/nais.yaml
-        """
-        sh label: 'Prepare dev service contract', script: """
-           kustomize build ./nais/dev -o ./nais/nais-dev-deploy.yaml &&  cat ./nais/nais-dev-deploy.yaml
-        """
-        sh label: 'Prepare prod service contract', script: """
-           kustomize build ./nais/prod -o ./nais/nais-prod-deploy.yaml &&  cat ./nais/nais-prod-deploy.yaml
+          sed -i 's/latest/${VERSION}/' ./nais.yaml
         """
       }
 
@@ -76,7 +70,7 @@ pipeline {
 
             sh label: 'Deploy with kubectl', script: """
               kubectl config use-context dev-${env.ZONE}
-              kubectl apply -f ./nais/nais-dev-deploy.yaml --wait
+              kubectl apply  -f ./nais.yaml --wait
               kubectl rollout status -w deployment/${APPLICATION_NAME}
             """
 
@@ -163,7 +157,7 @@ pipeline {
       steps {
         sh label: 'Deploy with kubectl', script: """
           kubectl config use-context prod-${env.ZONE}
-          kubectl apply  -f ./nais/nais-prod-deploy.yaml --wait
+          kubectl apply  -f ./nais.yaml --wait
           kubectl rollout status -w deployment/${APPLICATION_NAME}
         """
 
