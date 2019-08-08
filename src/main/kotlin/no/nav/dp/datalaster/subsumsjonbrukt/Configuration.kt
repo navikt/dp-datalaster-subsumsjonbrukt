@@ -8,7 +8,6 @@ import com.natpryce.konfig.intType
 import com.natpryce.konfig.overriding
 import com.natpryce.konfig.stringType
 
-
 private val localProperties = ConfigurationMap(
     mapOf(
         "application.profile" to "LOCAL",
@@ -50,11 +49,9 @@ data class Application(
     val password: String = config()[Key("srvdp.datalaster.subsumsjonbrukt.password", stringType)]
 )
 
-
 enum class Profile {
     LOCAL, DEV, PROD
 }
-
 
 private fun config() = when (getEnvOrProp("NAIS_CLUSTER_NAME")) {
     "dev-fss" -> ConfigurationProperties.systemProperties() overriding EnvironmentVariables overriding devProperties
