@@ -1,30 +1,38 @@
 package no.nav.dp.datalaster.subsumsjonbrukt
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
 import mu.KotlinLogging
 import no.nav.dagpenger.streams.KafkaCredential
 import no.nav.dagpenger.streams.Topic
 import no.nav.dagpenger.streams.consumeTopic
 import no.nav.dagpenger.streams.streamConfig
 import no.nav.dagpenger.streams.toTopic
+import no.nav.dp.datalaster.subsumsjonbrukt.health.HealthCheck
+import no.nav.dp.datalaster.subsumsjonbrukt.health.HealthStatus
 import no.nav.dp.datalaster.subsumsjonbrukt.regelapi.SubsumsjonApiClient
 import no.nav.dp.datalaster.subsumsjonbrukt.regelapi.SubsumsjonId
 import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.streams.KafkaStreams
 import org.apache.kafka.streams.StreamsBuilder
 import org.apache.kafka.streams.Topology
+import java.util.Properties
 import java.util.concurrent.TimeUnit
-import kotlin.coroutines.CoroutineContext
+import kotlin.system.exitProcess
 
-private val logger = KotlinLogging.logger {}
+private val LOGGER = KotlinLogging.logger {}
 
 class DatalasterSubsumsjonbruktStream(
-    private val subsumsjonApiClient: SubsumsjonApiClient
-) {
+    private val subsumsjonApiClient: SubsumsjonApiClient,
+    private val configuration: Configuration
+) : HealthCheck {
+
+    private val APPLICATION_NAME =
+        "dp-datalaster-subsumsjonbrukt" // NB: also used as group.id for the consumer group - do not change!
+
+    private val streams: KafkaStreams by lazy {
+        KafkaStreams(this.buildTopology(), this.getConfig()).apply {
+            setUncaughtExceptionHandler { _, _ -> exitProcess(0) }
+        }
+    }
 
     fun buildTopology(): Topology {
         val builder = StreamsBuilder()
@@ -37,34 +45,28 @@ class DatalasterSubsumsjonbruktStream(
         return builder.build()
     }
 
-    companion object Runner : CoroutineScope {
-        private val SERVICE_APP_ID =
-            "dp-datalaster-subsumsjonbrukt" // NB: also used as group.id for the consumer group - do not change!
-        private val job: Job = Job()
-        override val coroutineContext: CoroutineContext
-            get() = Dispatchers.IO + job
+    fun start() = streams.start().also { LOGGER.info { "Starting up $APPLICATION_NAME kafka stream" } }
 
-        fun run(configuration: Configuration, subsumsjonApiClient: SubsumsjonApiClient) {
-            launch {
-                logger.info("Starter kafka stream")
-                val properties = streamConfig(
-                    SERVICE_APP_ID, configuration.kafka.bootstrapServer,
-                    KafkaCredential(configuration.application.username, configuration.application.password)
-                )
-                val datalasterSubsumsjonbruktStream = DatalasterSubsumsjonbruktStream(subsumsjonApiClient)
-                val kafkaStreams = KafkaStreams(datalasterSubsumsjonbruktStream.buildTopology(), properties)
-                kafkaStreams.start()
-                Runtime.getRuntime().addShutdownHook(Thread {
-                    logger.info { "Shutting down stream" }
-                    kafkaStreams.close(2, TimeUnit.SECONDS)
-                    kafkaStreams.cleanUp()
-                })
-            }
+    fun stop() = with(streams) {
+        close(3, TimeUnit.SECONDS)
+        cleanUp()
+    }.also {
+        LOGGER.info { "Shutting down $APPLICATION_NAME kafka stream" }
+    }
+
+    override fun status(): HealthStatus {
+        return when (streams.state()) {
+            KafkaStreams.State.ERROR -> HealthStatus.DOWN
+            KafkaStreams.State.PENDING_SHUTDOWN -> HealthStatus.DOWN
+            else -> HealthStatus.UP
         }
     }
 
-    fun isActive(): Boolean {
-        return job.isActive
+    private fun getConfig(): Properties {
+        return streamConfig(
+            APPLICATION_NAME, configuration.kafka.bootstrapServer,
+            KafkaCredential(configuration.application.username, configuration.application.password)
+        )
     }
 }
 

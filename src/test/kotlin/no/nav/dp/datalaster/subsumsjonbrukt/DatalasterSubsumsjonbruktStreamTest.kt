@@ -33,7 +33,7 @@ internal class DatalasterSubsumsjonbruktStreamTest {
     @Test
     fun `Should not be able to process record with malformed json`() {
         val regelApiClient = mockk<SubsumsjonApiClient>()
-        val stream = DatalasterSubsumsjonbruktStream(regelApiClient)
+        val stream = DatalasterSubsumsjonbruktStream(regelApiClient, mockk<Configuration>())
 
         TopologyTestDriver(stream.buildTopology(), config).use { topologyTestDriver ->
             val inputRecord = factory.create("bad json")
@@ -54,7 +54,7 @@ internal class DatalasterSubsumsjonbruktStreamTest {
     @Test
     fun `Should not be able to process record with json missing id`() {
         val regelApiClient = mockk<SubsumsjonApiClient>()
-        val stream = DatalasterSubsumsjonbruktStream(regelApiClient)
+        val stream = DatalasterSubsumsjonbruktStream(regelApiClient, mockk<Configuration>())
 
         TopologyTestDriver(stream.buildTopology(), config).use { topologyTestDriver ->
             val inputRecord = factory.create("""
@@ -77,7 +77,7 @@ internal class DatalasterSubsumsjonbruktStreamTest {
     @Test
     fun `Should not be able to process record with json with an unrecognized id`() {
         val regelApiClient = mockk<SubsumsjonApiClient>()
-        val stream = DatalasterSubsumsjonbruktStream(regelApiClient)
+        val stream = DatalasterSubsumsjonbruktStream(regelApiClient, mockk<Configuration>())
 
         TopologyTestDriver(stream.buildTopology(), config).use { topologyTestDriver ->
             val inputRecord = factory.create("""
@@ -104,7 +104,7 @@ internal class DatalasterSubsumsjonbruktStreamTest {
             every { this@apply.subsumsjon(subsumsjonId) } returns "any"
         }
 
-        val stream = DatalasterSubsumsjonbruktStream(regelApiClient)
+        val stream = DatalasterSubsumsjonbruktStream(regelApiClient, mockk<Configuration>())
 
         TopologyTestDriver(stream.buildTopology(), config).use { topologyTestDriver ->
             val inputRecord = factory.create("""

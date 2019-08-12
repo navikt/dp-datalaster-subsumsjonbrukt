@@ -4,6 +4,7 @@ import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
 import io.ktor.features.DefaultHeaders
+import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.response.respondText
 import io.ktor.response.respondTextWriter
@@ -17,26 +18,24 @@ import io.ktor.server.netty.NettyApplicationEngine
 import io.prometheus.client.CollectorRegistry
 import io.prometheus.client.exporter.common.TextFormat
 import io.prometheus.client.hotspot.DefaultExports
-import kotlinx.coroutines.isActive
-import no.nav.dp.datalaster.subsumsjonbrukt.DatalasterSubsumsjonbruktStream
 
 object HealthServer {
-    suspend fun startServer(port: Int): NettyApplicationEngine {
+    suspend fun startServer(port: Int, healthChecks: List<HealthCheck>): NettyApplicationEngine {
         DefaultExports.initialize()
         return embeddedServer(Netty, port = port) {
-            health()
+            health(healthChecks)
         }
     }
 }
 
-fun Application.health() {
+internal fun Application.health(healthChecks: List<HealthCheck>) {
     install(DefaultHeaders)
     routing {
-        healthRoutes()
+        healthRoutes(healthChecks)
     }
 }
 
-fun Route.healthRoutes() {
+fun Route.healthRoutes(healthChecks: List<HealthCheck>) {
     route("/metrics") {
         get {
             val names = call.request.queryParameters.getAll("name")?.toSet() ?: kotlin.collections.emptySet()
@@ -51,11 +50,8 @@ fun Route.healthRoutes() {
 
     route("/isAlive") {
         get {
-            if (DatalasterSubsumsjonbruktStream.isActive) {
-                call.respondText(text = "ALIVE", contentType = io.ktor.http.ContentType.Text.Plain)
-            } else {
-                call.respondText(status = HttpStatusCode.InternalServerError, text = "NOT ALIVE", contentType = io.ktor.http.ContentType.Text.Plain)
-            }
+            if (healthChecks.all { it.status() == HealthStatus.UP }) call.respondText("ALIVE", ContentType.Text.Plain) else
+                call.response.status(HttpStatusCode.ServiceUnavailable)
         }
     }
     route("/isReady") {
