@@ -10,6 +10,7 @@ import no.nav.dp.datalaster.subsumsjonbrukt.health.HealthCheck
 import no.nav.dp.datalaster.subsumsjonbrukt.health.HealthStatus
 import no.nav.dp.datalaster.subsumsjonbrukt.regelapi.SubsumsjonApiClient
 import no.nav.dp.datalaster.subsumsjonbrukt.regelapi.SubsumsjonId
+import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.streams.KafkaStreams
 import org.apache.kafka.streams.StreamsBuilder
@@ -66,7 +67,9 @@ class DatalasterSubsumsjonbruktStream(
         return streamConfig(
             APPLICATION_NAME, configuration.kafka.bootstrapServer,
             KafkaCredential(configuration.application.username, configuration.application.password)
-        )
+        ).also {
+            it[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "earliest";
+        }
     }
 }
 

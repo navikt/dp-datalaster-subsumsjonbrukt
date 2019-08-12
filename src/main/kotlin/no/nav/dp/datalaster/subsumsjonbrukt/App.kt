@@ -1,13 +1,11 @@
 package no.nav.dp.datalaster.subsumsjonbrukt
 
 import kotlinx.coroutines.runBlocking
-import mu.KotlinLogging
 import no.nav.dp.datalaster.subsumsjonbrukt.health.HealthCheck
 import no.nav.dp.datalaster.subsumsjonbrukt.health.HealthServer
 import no.nav.dp.datalaster.subsumsjonbrukt.regelapi.SubsumsjonApiHttpClient
 import java.net.URL
-
-private val LOGGER = KotlinLogging.logger {}
+import java.util.concurrent.TimeUnit
 
 fun main() {
     val configuration = Configuration()
@@ -17,12 +15,14 @@ fun main() {
     ).also {
         it.start()
     }
+
+    val healthChecks = listOf(datalasterSubsumsjonbruktStream as HealthCheck)
+    val app = runBlocking {
+        return@runBlocking HealthServer.startServer(configuration.application.httpPort, healthChecks).start(wait = false)
+    }
+
     Runtime.getRuntime().addShutdownHook(Thread {
         datalasterSubsumsjonbruktStream.stop()
+        app.stop(2, 60, TimeUnit.SECONDS)
     })
-    val healthChecks = listOf(datalasterSubsumsjonbruktStream as HealthCheck)
-    runBlocking {
-        LOGGER.info { "STARTING" }
-        HealthServer.startServer(configuration.application.httpPort, healthChecks).start(wait = false)
-    }
 }

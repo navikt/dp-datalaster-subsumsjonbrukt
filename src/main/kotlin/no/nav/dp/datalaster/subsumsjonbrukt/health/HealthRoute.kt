@@ -12,15 +12,15 @@ import io.ktor.routing.Route
 import io.ktor.routing.get
 import io.ktor.routing.route
 import io.ktor.routing.routing
+import io.ktor.server.engine.ApplicationEngine
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
-import io.ktor.server.netty.NettyApplicationEngine
 import io.prometheus.client.CollectorRegistry
 import io.prometheus.client.exporter.common.TextFormat
 import io.prometheus.client.hotspot.DefaultExports
 
 object HealthServer {
-    suspend fun startServer(port: Int, healthChecks: List<HealthCheck>): NettyApplicationEngine {
+    suspend fun startServer(port: Int, healthChecks: List<HealthCheck>): ApplicationEngine {
         DefaultExports.initialize()
         return embeddedServer(Netty, port = port) {
             health(healthChecks)
