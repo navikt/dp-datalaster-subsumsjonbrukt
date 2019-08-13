@@ -68,7 +68,7 @@ class DatalasterSubsumsjonbruktStream(
             APPLICATION_NAME, configuration.kafka.bootstrapServer,
             KafkaCredential(configuration.application.username, configuration.application.password)
         ).also {
-            it[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "earliest";
+            it[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "earliest"
         }
     }
 }
