@@ -45,29 +45,31 @@ internal class SubsumsjonApiHttpClientTest {
     fun `Should get subsumsjon `() {
         val client = SubsumsjonApiHttpClient(URL(server.url("")), apiKey)
         val equalToPattern = EqualToPattern(apiKey)
+        val id = ULID().nextULID()
         WireMock.stubFor(
-            WireMock.get(WireMock.urlEqualTo("//behov"))
+            WireMock.get(WireMock.urlEqualTo("//behov/$id"))
                 .withHeader("X-API-KEY", equalToPattern)
                 .willReturn(
                     WireMock.aResponse()
                         .withBody("any")
                 )
         )
-        val subsumsjon = client.subsumsjon(SubsumsjonId(ULID().nextULID()))
+        val subsumsjon = client.subsumsjon(SubsumsjonId(id))
         subsumsjon shouldBe "any"
     }
 
     @Test
     fun `Should not get subsumsjon on server error `() {
         val client = SubsumsjonApiHttpClient(URL(server.url("")), apiKey)
+        val id = ULID().nextULID()
         val equalToPattern = EqualToPattern(apiKey)
         WireMock.stubFor(
-            WireMock.get(WireMock.urlEqualTo("//behov"))
+            WireMock.get(WireMock.urlEqualTo("//behov/$id"))
                 .withHeader("X-API-KEY", equalToPattern)
                 .willReturn(
                     serverError()
                 )
         )
-        shouldThrow<RuntimeException> { client.subsumsjon(SubsumsjonId(ULID().nextULID())) }
+        shouldThrow<RuntimeException> { client.subsumsjon(SubsumsjonId(id)) }
     }
 }

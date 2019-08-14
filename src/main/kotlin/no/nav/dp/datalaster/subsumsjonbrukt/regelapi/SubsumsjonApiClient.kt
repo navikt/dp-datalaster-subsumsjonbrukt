@@ -39,7 +39,7 @@ class SubsumsjonApiHttpClient(private val regelApiUrl: URL, private val apiKey: 
 
     override fun subsumsjon(subsumsjonId: SubsumsjonId): String {
 
-        val jsonData = "${regelApiUrl.toURI().toASCIIString()}/behov"
+        val jsonData = "${regelApiUrl.toURI().toASCIIString()}/behov/${subsumsjonId.id}"
         val (_, response, result) = with(
             jsonData.httpGet()
                 .apiKey(apiKey)
