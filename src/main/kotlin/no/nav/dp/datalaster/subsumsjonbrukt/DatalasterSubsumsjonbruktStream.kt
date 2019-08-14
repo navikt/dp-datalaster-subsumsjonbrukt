@@ -41,7 +41,7 @@ class DatalasterSubsumsjonbruktStream(
 }
 
 val outTopic = Topic(
-    "privat-dagpenger-subsumsjon-data-brukt",
+    "privat-dagpenger-subsumsjon-brukt-data",
     keySerde = Serdes.String(),
     valueSerde = Serdes.String()
 )
