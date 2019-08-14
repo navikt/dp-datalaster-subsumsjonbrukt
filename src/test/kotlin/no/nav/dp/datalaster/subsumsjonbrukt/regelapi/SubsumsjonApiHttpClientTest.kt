@@ -47,7 +47,7 @@ internal class SubsumsjonApiHttpClientTest {
         val equalToPattern = EqualToPattern(apiKey)
         val id = ULID().nextULID()
         WireMock.stubFor(
-            WireMock.get(WireMock.urlEqualTo("//behov/$id"))
+            WireMock.get(WireMock.urlEqualTo("//subsumsjon/$id"))
                 .withHeader("X-API-KEY", equalToPattern)
                 .willReturn(
                     WireMock.aResponse()
@@ -64,7 +64,7 @@ internal class SubsumsjonApiHttpClientTest {
         val id = ULID().nextULID()
         val equalToPattern = EqualToPattern(apiKey)
         WireMock.stubFor(
-            WireMock.get(WireMock.urlEqualTo("//behov/$id"))
+            WireMock.get(WireMock.urlEqualTo("//subsumsjon/$id"))
                 .withHeader("X-API-KEY", equalToPattern)
                 .willReturn(
                     serverError()
