@@ -16,15 +16,32 @@ repositories {
 
 application {
     applicationName = "dp-datalaster-subsumsjonsbrukt"
-    mainClassName = "no.nav.dp.datalaster.subsumsjonbrukt.DatalasterSubsumsjonbruktAppKt"
+    mainClassName = "no.nav.dp.datalaster.subsumsjonbrukt.AppKt"
 }
 
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
 
+    implementation(Dagpenger.Streams)
+
+    // kafka
+    implementation(Kafka.streams)
+
     // ktor
     implementation(Ktor.server)
     implementation(Ktor.serverNetty)
+    implementation(Dagpenger.Biblioteker.ktorUtils)
+
+    // http client
+    implementation(Fuel.fuel)
+
+    // Json (de)serialisering
+    implementation(Moshi.moshi)
+    implementation(Moshi.moshiKotlin)
+    implementation(Moshi.moshiAdapters)
+
+    // Unik id
+    implementation(Ulid.ulid)
 
     // Miljøkonfigurasjon
     implementation(Konfig.konfig)
@@ -42,6 +59,7 @@ dependencies {
     implementation(Prometheus.log4j2)
 
     // testing
+    testImplementation(Kafka.streamTestUtils)
     testImplementation(kotlin("test"))
     testImplementation(Ktor.ktorTest)
     testImplementation(Junit5.api)
@@ -50,6 +68,7 @@ dependencies {
     testImplementation(Junit5.kotlinRunner)
     testImplementation(TestContainers.postgresql)
     testImplementation(Mockk.mockk)
+    testImplementation(Wiremock.standalone)
 }
 
 configurations {
