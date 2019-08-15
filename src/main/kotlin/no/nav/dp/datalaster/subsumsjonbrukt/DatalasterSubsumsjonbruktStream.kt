@@ -1,5 +1,6 @@
 package no.nav.dp.datalaster.subsumsjonbrukt
 
+import mu.KotlinLogging
 import no.nav.dagpenger.streams.KafkaCredential
 import no.nav.dagpenger.streams.Service
 import no.nav.dagpenger.streams.Topic
@@ -14,6 +15,8 @@ import org.apache.kafka.streams.StreamsBuilder
 import org.apache.kafka.streams.Topology
 import java.util.Properties
 
+private val LOGGER = KotlinLogging.logger {}
+
 class DatalasterSubsumsjonbruktStream(
     private val subsumsjonApiClient: SubsumsjonApiClient,
     private val configuration: Configuration
@@ -24,6 +27,7 @@ class DatalasterSubsumsjonbruktStream(
         builder
             .consumeTopic(inTopic)
             .mapValues { _, jsonValue -> SubsumsjonId.fromJson(jsonValue) }
+            .peek { _, id -> id?.let { LOGGER.info { "Add data to subsumsjon id brukt $id" } } }
             .mapValues { _, id -> id?.let { subsumsjonApiClient.subsumsjon(it) } }
             .filterNot { _, value -> value == null }
             .toTopic(outTopic)
