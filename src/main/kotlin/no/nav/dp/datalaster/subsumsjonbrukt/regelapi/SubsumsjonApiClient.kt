@@ -39,7 +39,7 @@ class SubsumsjonApiHttpClient(private val regelApiUrl: URL, private val apiKey: 
 
     override fun subsumsjon(subsumsjonId: SubsumsjonId): String {
 
-        val subsumsjonUrl = "${regelApiUrl.toURI().toASCIIString()}/subsumsjon/${subsumsjonId.id}"
+        val subsumsjonUrl = "${regelApiUrl.toURI().toASCIIString()}/subsumsjon/result/${subsumsjonId.id}"
         val (_, response, result) = with(
             subsumsjonUrl.httpGet()
                 .apiKey(apiKey)
@@ -47,12 +47,14 @@ class SubsumsjonApiHttpClient(private val regelApiUrl: URL, private val apiKey: 
             responseString()
         }
         return when (result) {
-            is Result.Failure -> throw RuntimeException(
+            is Result.Failure -> throw SubsumsjonClientException(
                 "Failed to fetch subsumsjon. Response message ${response.responseMessage}. Error message: ${result.error.message}"
             )
             is Result.Success -> response.body().asString("application/json")
         }
     }
 }
+
+class SubsumsjonClientException(override val message: String) : RuntimeException(message)
 
 internal fun Request.apiKey(apiKey: String) = this.header("X-API-KEY", apiKey)
