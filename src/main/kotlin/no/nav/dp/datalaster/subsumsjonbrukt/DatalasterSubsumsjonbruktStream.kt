@@ -8,13 +8,12 @@ import no.nav.dagpenger.streams.consumeTopic
 import no.nav.dagpenger.streams.streamConfig
 import no.nav.dagpenger.streams.toTopic
 import no.nav.dp.datalaster.subsumsjonbrukt.regelapi.SubsumsjonApiClient
+import no.nav.dp.datalaster.subsumsjonbrukt.regelapi.SubsumsjonClientException
 import no.nav.dp.datalaster.subsumsjonbrukt.regelapi.SubsumsjonId
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.streams.StreamsBuilder
-import org.apache.kafka.streams.StreamsConfig
 import org.apache.kafka.streams.Topology
-import org.apache.kafka.streams.errors.LogAndContinueExceptionHandler
 import java.util.Properties
 
 private val LOGGER = KotlinLogging.logger {}
@@ -30,7 +29,19 @@ class DatalasterSubsumsjonbruktStream(
             .consumeTopic(inTopic)
             .mapValues { _, jsonValue -> SubsumsjonId.fromJson(jsonValue) }
             .peek { _, id -> id?.let { LOGGER.info { "Add data to subsumsjon id brukt $id" } } }
-            .mapValues { _, id -> id?.let { subsumsjonApiClient.subsumsjon(it) } }
+            .mapValues { _, id ->
+                id?.let {
+                    return@let try {
+                        subsumsjonApiClient.subsumsjon(it)
+                    } catch (exc: SubsumsjonClientException) {
+                        if (configuration.application.profile != Profile.PROD) {
+                            null
+                        } else {
+                            throw exc
+                        }
+                    }
+                }
+            }
             .filterNot { _, value -> value == null }
             .toTopic(outTopic)
         return builder.build()
@@ -42,9 +53,6 @@ class DatalasterSubsumsjonbruktStream(
             KafkaCredential(configuration.application.username, configuration.application.password)
         ).also {
             it[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "earliest"
-            if (configuration.application.profile != Profile.PROD) {
-                it[StreamsConfig.DEFAULT_DESERIALIZATION_EXCEPTION_HANDLER_CLASS_CONFIG] = LogAndContinueExceptionHandler::class.java
-            }
         }
     }
 }
