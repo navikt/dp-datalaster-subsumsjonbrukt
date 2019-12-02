@@ -28,6 +28,9 @@ class DatalasterSubsumsjonbruktStream(
         builder
             .consumeTopic(inTopic)
             .mapValues { _, jsonValue -> SubsumsjonId.fromJson(jsonValue) }
+            .filterNot { _, id -> id?.let {
+                it.id == "01DJ2EG331RMFVHWSRKRMH92QJ"
+            } ?: false }
             .peek { _, id -> id?.let { LOGGER.info { "Add data to subsumsjon id brukt $id" } } }
             .mapValues { _, id ->
                 id?.let {

@@ -123,4 +123,29 @@ internal class DatalasterSubsumsjonbruktStreamTest {
 
         verify(exactly = 1) { regelApiClient.subsumsjon(subsumsjonId) }
     }
+
+    @Test
+    fun `Skip subsumsjonsid with id 01DJ2EG331RMFVHWSRKRMH92QJ`() {
+        val subsumsjonId = SubsumsjonId("01DJ2EG331RMFVHWSRKRMH92QJ")
+        val regelApiClient = mockk<SubsumsjonApiClient>()
+
+        val stream = DatalasterSubsumsjonbruktStream(regelApiClient, mockk<Configuration>())
+
+        TopologyTestDriver(stream.buildTopology(), config).use { topologyTestDriver ->
+            val inputRecord = factory.create("""
+                { "id" : "${subsumsjonId.id}" }
+            """.trimIndent())
+            topologyTestDriver.pipeInput(inputRecord)
+
+            val ut = topologyTestDriver.readOutput(
+                outTopic.name,
+                outTopic.keySerde.deserializer(),
+                outTopic.valueSerde.deserializer()
+            )
+
+            ut shouldBe null
+        }
+
+        verify(exactly = 0) { regelApiClient.subsumsjon(subsumsjonId) }
+    }
 }
