@@ -16,7 +16,7 @@ import org.apache.kafka.streams.StreamsBuilder
 import org.apache.kafka.streams.Topology
 import java.util.Properties
 
-private val LOGGER = KotlinLogging.logger {}
+private val logger = KotlinLogging.logger {}
 
 class DatalasterSubsumsjonbruktStream(
     private val subsumsjonApiClient: SubsumsjonApiClient,
@@ -28,7 +28,7 @@ class DatalasterSubsumsjonbruktStream(
         builder
             .consumeTopic(inTopic)
             .mapValues { _, jsonValue -> SubsumsjonId.fromJson(jsonValue) }
-            .peek { _, id -> id?.let { LOGGER.info { "Add data to subsumsjon id brukt $id" } } }
+            .peek { _, id -> id?.let { logger.info { "Add data to subsumsjon id brukt $id" } } }
             .mapValues { _, id ->
                 id?.let {
                     return@let try {
@@ -39,6 +39,7 @@ class DatalasterSubsumsjonbruktStream(
                                 null
                             }
                             exc.status == 404 -> {
+                                logger.warn { "Subsumsjons id '$it' not found" }
                                 null
                             }
                             else -> {
