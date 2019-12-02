@@ -7,6 +7,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import no.nav.dp.datalaster.subsumsjonbrukt.regelapi.SubsumsjonApiClient
+import no.nav.dp.datalaster.subsumsjonbrukt.regelapi.SubsumsjonClientException
 import no.nav.dp.datalaster.subsumsjonbrukt.regelapi.SubsumsjonId
 import org.apache.kafka.streams.StreamsConfig
 import org.apache.kafka.streams.TopologyTestDriver
@@ -125,11 +126,13 @@ internal class DatalasterSubsumsjonbruktStreamTest {
     }
 
     @Test
-    fun `Skip subsumsjonsid with id 01DJ2EG331RMFVHWSRKRMH92QJ`() {
-        val subsumsjonId = SubsumsjonId("01DJ2EG331RMFVHWSRKRMH92QJ")
-        val regelApiClient = mockk<SubsumsjonApiClient>()
+    fun `Skip subsumsjon id not found`() {
+        val subsumsjonId = SubsumsjonId(ULID().nextULID())
+        val regelApiClient = mockk<SubsumsjonApiClient>().apply {
+            every { this@apply.subsumsjon(subsumsjonId) } throws SubsumsjonClientException(status = 404, message = "not found")
+        }
 
-        val stream = DatalasterSubsumsjonbruktStream(regelApiClient, mockk<Configuration>())
+        val stream = DatalasterSubsumsjonbruktStream(regelApiClient, Configuration())
 
         TopologyTestDriver(stream.buildTopology(), config).use { topologyTestDriver ->
             val inputRecord = factory.create("""
@@ -146,6 +149,6 @@ internal class DatalasterSubsumsjonbruktStreamTest {
             ut shouldBe null
         }
 
-        verify(exactly = 0) { regelApiClient.subsumsjon(subsumsjonId) }
+        verify(exactly = 1) { regelApiClient.subsumsjon(subsumsjonId) }
     }
 }

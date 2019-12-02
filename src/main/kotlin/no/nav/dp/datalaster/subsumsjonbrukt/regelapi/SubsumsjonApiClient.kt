@@ -48,6 +48,7 @@ class SubsumsjonApiHttpClient(private val regelApiUrl: URL, private val apiKey: 
         }
         return when (result) {
             is Result.Failure -> throw SubsumsjonClientException(
+                response.statusCode,
                 "Failed to fetch subsumsjon. Response message ${response.responseMessage}. Error message: ${result.error.message}"
             )
             is Result.Success -> response.body().asString("application/json")
@@ -55,6 +56,6 @@ class SubsumsjonApiHttpClient(private val regelApiUrl: URL, private val apiKey: 
     }
 }
 
-class SubsumsjonClientException(override val message: String) : RuntimeException(message)
+class SubsumsjonClientException(val status: Int = 500, override val message: String) : RuntimeException(message)
 
 internal fun Request.apiKey(apiKey: String) = this.header("X-API-KEY", apiKey)

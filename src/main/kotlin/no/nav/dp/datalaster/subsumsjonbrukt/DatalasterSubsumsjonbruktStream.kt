@@ -28,19 +28,22 @@ class DatalasterSubsumsjonbruktStream(
         builder
             .consumeTopic(inTopic)
             .mapValues { _, jsonValue -> SubsumsjonId.fromJson(jsonValue) }
-            .filterNot { _, id -> id?.let {
-                it.id == "01DJ2EG331RMFVHWSRKRMH92QJ"
-            } ?: false }
             .peek { _, id -> id?.let { LOGGER.info { "Add data to subsumsjon id brukt $id" } } }
             .mapValues { _, id ->
                 id?.let {
                     return@let try {
                         subsumsjonApiClient.subsumsjon(it)
                     } catch (exc: SubsumsjonClientException) {
-                        if (configuration.application.profile != Profile.PROD) {
-                            null
-                        } else {
-                            throw exc
+                        when {
+                            configuration.application.profile != Profile.PROD -> {
+                                null
+                            }
+                            exc.status == 404 -> {
+                                null
+                            }
+                            else -> {
+                                throw exc
+                            }
                         }
                     }
                 }
