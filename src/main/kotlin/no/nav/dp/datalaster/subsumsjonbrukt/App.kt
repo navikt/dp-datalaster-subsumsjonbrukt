@@ -1,7 +1,7 @@
 package no.nav.dp.datalaster.subsumsjonbrukt
 
-import no.nav.dp.datalaster.subsumsjonbrukt.regelapi.SubsumsjonApiHttpClient
 import java.net.URL
+import no.nav.dp.datalaster.subsumsjonbrukt.regelapi.SubsumsjonApiHttpClient
 
 fun main() {
     val configuration = Configuration()

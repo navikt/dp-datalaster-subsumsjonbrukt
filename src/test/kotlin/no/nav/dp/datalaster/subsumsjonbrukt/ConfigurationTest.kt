@@ -1,6 +1,6 @@
 package no.nav.dp.datalaster.subsumsjonbrukt
 
-import io.kotlintest.shouldBe
+import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 
 class ConfigurationTest {

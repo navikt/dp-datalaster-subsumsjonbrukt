@@ -1,11 +1,12 @@
 package no.nav.dp.datalaster.subsumsjonbrukt
 
 import de.huxhorn.sulky.ulid.ULID
-import io.kotlintest.shouldBe
-import io.kotlintest.shouldNotBe
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import java.util.Properties
 import no.nav.dp.datalaster.subsumsjonbrukt.regelapi.SubsumsjonApiClient
 import no.nav.dp.datalaster.subsumsjonbrukt.regelapi.SubsumsjonClientException
 import no.nav.dp.datalaster.subsumsjonbrukt.regelapi.SubsumsjonId
@@ -13,8 +14,6 @@ import org.apache.kafka.streams.StreamsConfig
 import org.apache.kafka.streams.TopologyTestDriver
 import org.apache.kafka.streams.test.ConsumerRecordFactory
 import org.junit.jupiter.api.Test
-
-import java.util.Properties
 
 internal class DatalasterSubsumsjonbruktStreamTest {
 

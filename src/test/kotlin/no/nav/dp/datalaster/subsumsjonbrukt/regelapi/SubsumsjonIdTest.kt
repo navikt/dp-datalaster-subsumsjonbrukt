@@ -1,11 +1,11 @@
 package no.nav.dp.datalaster.subsumsjonbrukt.regelapi
 
 import de.huxhorn.sulky.ulid.ULID
-import io.kotlintest.shouldBe
-import io.kotlintest.shouldNotBe
-import io.kotlintest.shouldThrow
-import org.junit.Test
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import java.util.UUID
+import org.junit.Test
 
 class SubsumsjonIdTest {
 
