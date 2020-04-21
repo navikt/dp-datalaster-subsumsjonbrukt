@@ -109,11 +109,11 @@ compileTestKotlin.kotlinOptions {
 
 spotless {
     kotlin {
-        ktlint(Klint.version)
+        ktlint()
     }
     kotlinGradle {
         target("*.gradle.kts")
-        ktlint(Klint.version)
+        ktlint()
     }
 }
 
