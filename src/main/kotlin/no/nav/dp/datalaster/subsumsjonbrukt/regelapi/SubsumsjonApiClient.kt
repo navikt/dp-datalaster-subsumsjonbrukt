@@ -4,11 +4,11 @@ import com.github.kittinunf.fuel.core.Request
 import com.github.kittinunf.fuel.httpGet
 import com.github.kittinunf.result.Result
 import de.huxhorn.sulky.ulid.ULID
+import mu.KotlinLogging
+import no.nav.dp.datalaster.subsumsjonbrukt.moshiInstance
 import java.lang.IllegalArgumentException
 import java.lang.RuntimeException
 import java.net.URL
-import mu.KotlinLogging
-import no.nav.dp.datalaster.subsumsjonbrukt.moshiInstance
 
 interface SubsumsjonApiClient {
     fun subsumsjon(subsumsjonId: SubsumsjonId): String

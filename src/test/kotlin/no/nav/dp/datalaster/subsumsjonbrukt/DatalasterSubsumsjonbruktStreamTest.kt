@@ -6,7 +6,6 @@ import io.kotest.matchers.shouldNotBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import java.util.Properties
 import no.nav.dp.datalaster.subsumsjonbrukt.regelapi.SubsumsjonApiClient
 import no.nav.dp.datalaster.subsumsjonbrukt.regelapi.SubsumsjonClientException
 import no.nav.dp.datalaster.subsumsjonbrukt.regelapi.SubsumsjonId
@@ -14,6 +13,7 @@ import org.apache.kafka.streams.StreamsConfig
 import org.apache.kafka.streams.TopologyTestDriver
 import org.apache.kafka.streams.test.ConsumerRecordFactory
 import org.junit.jupiter.api.Test
+import java.util.Properties
 
 internal class DatalasterSubsumsjonbruktStreamTest {
 
@@ -57,9 +57,11 @@ internal class DatalasterSubsumsjonbruktStreamTest {
         val stream = DatalasterSubsumsjonbruktStream(regelApiClient, mockk<Configuration>())
 
         TopologyTestDriver(stream.buildTopology(), config).use { topologyTestDriver ->
-            val inputRecord = factory.create("""
+            val inputRecord = factory.create(
+                """
                 { "aname" : "aname" }
-            """.trimIndent())
+                """.trimIndent()
+            )
             topologyTestDriver.pipeInput(inputRecord)
 
             val ut = topologyTestDriver.readOutput(
@@ -80,9 +82,11 @@ internal class DatalasterSubsumsjonbruktStreamTest {
         val stream = DatalasterSubsumsjonbruktStream(regelApiClient, mockk<Configuration>())
 
         TopologyTestDriver(stream.buildTopology(), config).use { topologyTestDriver ->
-            val inputRecord = factory.create("""
+            val inputRecord = factory.create(
+                """
                 { "id" : "blabla" }
-            """.trimIndent())
+                """.trimIndent()
+            )
             topologyTestDriver.pipeInput(inputRecord)
 
             val ut = topologyTestDriver.readOutput(
@@ -107,9 +111,11 @@ internal class DatalasterSubsumsjonbruktStreamTest {
         val stream = DatalasterSubsumsjonbruktStream(regelApiClient, mockk<Configuration>())
 
         TopologyTestDriver(stream.buildTopology(), config).use { topologyTestDriver ->
-            val inputRecord = factory.create("""
+            val inputRecord = factory.create(
+                """
                 { "id" : "${subsumsjonId.id}" }
-            """.trimIndent())
+                """.trimIndent()
+            )
             topologyTestDriver.pipeInput(inputRecord)
 
             val ut = topologyTestDriver.readOutput(
@@ -134,9 +140,11 @@ internal class DatalasterSubsumsjonbruktStreamTest {
         val stream = DatalasterSubsumsjonbruktStream(regelApiClient, Configuration())
 
         TopologyTestDriver(stream.buildTopology(), config).use { topologyTestDriver ->
-            val inputRecord = factory.create("""
+            val inputRecord = factory.create(
+                """
                 { "id" : "${subsumsjonId.id}" }
-            """.trimIndent())
+                """.trimIndent()
+            )
             topologyTestDriver.pipeInput(inputRecord)
 
             val ut = topologyTestDriver.readOutput(

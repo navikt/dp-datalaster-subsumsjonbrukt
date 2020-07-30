@@ -1,6 +1,5 @@
 package no.nav.dp.datalaster.subsumsjonbrukt
 
-import java.util.Properties
 import mu.KotlinLogging
 import no.nav.dagpenger.streams.KafkaCredential
 import no.nav.dagpenger.streams.Service
@@ -15,6 +14,7 @@ import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.streams.StreamsBuilder
 import org.apache.kafka.streams.Topology
+import java.util.Properties
 
 private val logger = KotlinLogging.logger {}
 

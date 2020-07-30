@@ -1,7 +1,7 @@
 package no.nav.dp.datalaster.subsumsjonbrukt
 
-import java.net.URL
 import no.nav.dp.datalaster.subsumsjonbrukt.regelapi.SubsumsjonApiHttpClient
+import java.net.URL
 
 fun main() {
     val configuration = Configuration()
@@ -11,7 +11,9 @@ fun main() {
     ).also {
         it.start()
     }
-    Runtime.getRuntime().addShutdownHook(Thread {
-        datalasterSubsumsjonbruktStream.stop()
-    })
+    Runtime.getRuntime().addShutdownHook(
+        Thread {
+            datalasterSubsumsjonbruktStream.stop()
+        }
+    )
 }
