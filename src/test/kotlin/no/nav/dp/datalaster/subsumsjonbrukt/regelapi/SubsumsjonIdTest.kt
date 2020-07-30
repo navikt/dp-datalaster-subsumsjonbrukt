@@ -4,8 +4,8 @@ import de.huxhorn.sulky.ulid.ULID
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import java.util.UUID
 import org.junit.Test
+import java.util.UUID
 
 class SubsumsjonIdTest {
 

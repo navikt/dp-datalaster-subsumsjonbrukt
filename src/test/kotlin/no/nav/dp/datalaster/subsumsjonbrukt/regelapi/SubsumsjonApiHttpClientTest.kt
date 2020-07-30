@@ -8,11 +8,11 @@ import com.github.tomakehurst.wiremock.matching.EqualToPattern
 import de.huxhorn.sulky.ulid.ULID
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
-import java.net.URL
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.net.URL
 
 internal class SubsumsjonApiHttpClientTest {
 
