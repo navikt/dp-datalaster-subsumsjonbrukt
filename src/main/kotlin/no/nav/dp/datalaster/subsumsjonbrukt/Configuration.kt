@@ -76,9 +76,7 @@ private fun String.readFile() =
 
 data class Application(
     val httpPort: Int = config()[Key("application.httpPort", intType)],
-    val profile: Profile = config()[Key("application.profile", stringType)].let { Profile.valueOf(it) },
-    val username: String = config()[Key("srvdp.datalaster.subsumsjonbrukt.username", stringType)],
-    val password: String = config()[Key("srvdp.datalaster.subsumsjonbrukt.password", stringType)]
+    val profile: Profile = config()[Key("application.profile", stringType)].let { Profile.valueOf(it) }
 )
 
 class Auth(
