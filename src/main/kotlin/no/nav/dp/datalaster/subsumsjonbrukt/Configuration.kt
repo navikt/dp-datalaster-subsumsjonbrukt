@@ -63,8 +63,8 @@ data class Kafka(
 )
 
 object Serviceuser {
-    val username = config()[Key("srvdp.datalaster.subsumsjonbrukt.username", stringType)]
-    val password = config()[Key("srvdp.datalaster.subsumsjonbrukt.password", stringType)]
+    val username = "/var/run/secrets/nais.io/service_user/username".readFile() ?: throw IllegalArgumentException("Missing service-user path")
+    val password = "/var/run/secrets/nais.io/service_user/password".readFile() ?: throw IllegalArgumentException("Missing service-user path")
 }
 
 private fun String.readFile() =
