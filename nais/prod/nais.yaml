@@ -30,5 +30,5 @@ spec:
   vault:
     enabled: true
     paths:
-      - kvPath: "serviceuser/data/dev/{{service_user}}"
+      - kvPath: "serviceuser/data/prod/{{service_user}}"
         mountPath: "/var/run/secrets/nais.io/service_user"
