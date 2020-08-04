@@ -57,7 +57,7 @@ class DatalasterSubsumsjonbruktStream(
     override fun getConfig(): Properties {
         return streamConfig(
             SERVICE_APP_ID, configuration.kafka.bootstrapServer,
-            KafkaCredential(configuration.application.username, configuration.application.password)
+            KafkaCredential(Serviceuser.username, Serviceuser.password)
         ).also {
             it[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "earliest"
         }

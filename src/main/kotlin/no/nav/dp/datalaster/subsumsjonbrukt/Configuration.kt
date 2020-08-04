@@ -8,6 +8,8 @@ import com.natpryce.konfig.intType
 import com.natpryce.konfig.overriding
 import com.natpryce.konfig.stringType
 import no.nav.dagpenger.ktor.auth.ApiKeyVerifier
+import java.io.File
+import java.io.FileNotFoundException
 
 private val localProperties = ConfigurationMap(
     mapOf(
@@ -57,10 +59,20 @@ data class Configuration(
 )
 
 data class Kafka(
-    val bootstrapServer: String = config()[Key("kafka.bootstrapServer", stringType)],
-    val username: String = config()[Key("srvdp.datalaster.subsumsjonbrukt.username", stringType)],
-    val password: String = config()[Key("srvdp.datalaster.subsumsjonbrukt.password", stringType)]
+    val bootstrapServer: String = config()[Key("kafka.bootstrapServer", stringType)]
 )
+
+object Serviceuser {
+    val username = "/var/run/secrets/nais.io/service_user/username".readFile() ?: "nada"
+    val password = "/var/run/secrets/nais.io/service_user/password".readFile() ?: "nix"
+}
+
+private fun String.readFile() =
+    try {
+        File(this).readText(Charsets.UTF_8)
+    } catch (err: FileNotFoundException) {
+        null
+    }
 
 data class Application(
     val httpPort: Int = config()[Key("application.httpPort", intType)],
