@@ -63,8 +63,8 @@ data class Kafka(
 )
 
 object Serviceuser {
-    val username = "/var/run/secrets/nais.io/service_user/username".readFile() ?: "nada"
-    val password = "/var/run/secrets/nais.io/service_user/password".readFile() ?: "nix"
+    val username = config()[Key("srvdp.datalaster.subsumsjonbrukt.username", stringType)]
+    val password = config()[Key("srvdp.datalaster.subsumsjonbrukt.password", stringType)]
 }
 
 private fun String.readFile() =
