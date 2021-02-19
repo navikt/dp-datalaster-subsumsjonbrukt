@@ -1,8 +1,6 @@
 package no.nav.dp.datalaster.subsumsjonbrukt
 
 import de.huxhorn.sulky.ulid.ULID
-import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -10,20 +8,17 @@ import no.nav.dp.datalaster.subsumsjonbrukt.regelapi.SubsumsjonApiClient
 import no.nav.dp.datalaster.subsumsjonbrukt.regelapi.SubsumsjonClientException
 import no.nav.dp.datalaster.subsumsjonbrukt.regelapi.SubsumsjonId
 import org.apache.kafka.streams.StreamsConfig
+import org.apache.kafka.streams.TestInputTopic
+import org.apache.kafka.streams.TestOutputTopic
 import org.apache.kafka.streams.TopologyTestDriver
-import org.apache.kafka.streams.test.ConsumerRecordFactory
 import org.junit.jupiter.api.Test
 import java.util.Properties
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 internal class DatalasterSubsumsjonbruktStreamTest {
 
     companion object {
-        val factory = ConsumerRecordFactory<String, String>(
-            inTopic.name,
-            inTopic.keySerde.serializer(),
-            inTopic.valueSerde.serializer()
-        )
-
         val config = Properties().apply {
             this[StreamsConfig.APPLICATION_ID_CONFIG] = "test"
             this[StreamsConfig.BOOTSTRAP_SERVERS_CONFIG] = "dummy:1234"
@@ -33,19 +28,11 @@ internal class DatalasterSubsumsjonbruktStreamTest {
     @Test
     fun `Should not be able to process record with malformed json`() {
         val regelApiClient = mockk<SubsumsjonApiClient>()
-        val stream = DatalasterSubsumsjonbruktStream(regelApiClient, mockk<Configuration>())
+        val stream = DatalasterSubsumsjonbruktStream(regelApiClient, mockk())
 
         TopologyTestDriver(stream.buildTopology(), config).use { topologyTestDriver ->
-            val inputRecord = factory.create("bad json")
-            topologyTestDriver.pipeInput(inputRecord)
-
-            val ut = topologyTestDriver.readOutput(
-                outTopic.name,
-                outTopic.keySerde.deserializer(),
-                outTopic.valueSerde.deserializer()
-            )
-
-            ut shouldBe null
+            topologyTestDriver.subsumsjonInputTopic().also { it.pipeInput("bad json") }
+            assertTrue { topologyTestDriver.subsumsjonOutputTopic().isEmpty }
         }
 
         verify(exactly = 0) { regelApiClient.subsumsjon(any()) }
@@ -54,23 +41,15 @@ internal class DatalasterSubsumsjonbruktStreamTest {
     @Test
     fun `Should not be able to process record with json missing id`() {
         val regelApiClient = mockk<SubsumsjonApiClient>()
-        val stream = DatalasterSubsumsjonbruktStream(regelApiClient, mockk<Configuration>())
+        val stream = DatalasterSubsumsjonbruktStream(regelApiClient, mockk())
 
         TopologyTestDriver(stream.buildTopology(), config).use { topologyTestDriver ->
-            val inputRecord = factory.create(
+            val json =
                 """
                 { "aname" : "aname" }
                 """.trimIndent()
-            )
-            topologyTestDriver.pipeInput(inputRecord)
-
-            val ut = topologyTestDriver.readOutput(
-                outTopic.name,
-                outTopic.keySerde.deserializer(),
-                outTopic.valueSerde.deserializer()
-            )
-
-            ut shouldBe null
+            topologyTestDriver.subsumsjonInputTopic().also { it.pipeInput(json) }
+            assertTrue { topologyTestDriver.subsumsjonOutputTopic().isEmpty }
         }
 
         verify(exactly = 0) { regelApiClient.subsumsjon(any()) }
@@ -79,23 +58,15 @@ internal class DatalasterSubsumsjonbruktStreamTest {
     @Test
     fun `Should not be able to process record with json with an unrecognized id`() {
         val regelApiClient = mockk<SubsumsjonApiClient>()
-        val stream = DatalasterSubsumsjonbruktStream(regelApiClient, mockk<Configuration>())
+        val stream = DatalasterSubsumsjonbruktStream(regelApiClient, mockk())
 
         TopologyTestDriver(stream.buildTopology(), config).use { topologyTestDriver ->
-            val inputRecord = factory.create(
+            val json =
                 """
-                { "id" : "blabla" }
+                 { "id" : "blabla" }
                 """.trimIndent()
-            )
-            topologyTestDriver.pipeInput(inputRecord)
-
-            val ut = topologyTestDriver.readOutput(
-                outTopic.name,
-                outTopic.keySerde.deserializer(),
-                outTopic.valueSerde.deserializer()
-            )
-
-            ut shouldBe null
+            topologyTestDriver.subsumsjonInputTopic().also { it.pipeInput(json) }
+            assertTrue { topologyTestDriver.subsumsjonOutputTopic().isEmpty }
         }
 
         verify(exactly = 0) { regelApiClient.subsumsjon(any()) }
@@ -105,26 +76,20 @@ internal class DatalasterSubsumsjonbruktStreamTest {
     fun `Should be able to process record with json with an recognized id`() {
         val subsumsjonId = SubsumsjonId(ULID().nextULID())
         val regelApiClient = mockk<SubsumsjonApiClient>().apply {
-            every { this@apply.subsumsjon(subsumsjonId) } returns "any"
+            every { this@apply.subsumsjon(subsumsjonId) } returns """{"any":"any"}"""
         }
 
-        val stream = DatalasterSubsumsjonbruktStream(regelApiClient, mockk<Configuration>())
+        val stream = DatalasterSubsumsjonbruktStream(regelApiClient, mockk())
 
         TopologyTestDriver(stream.buildTopology(), config).use { topologyTestDriver ->
-            val inputRecord = factory.create(
+            val json =
                 """
                 { "id" : "${subsumsjonId.id}" }
                 """.trimIndent()
-            )
-            topologyTestDriver.pipeInput(inputRecord)
-
-            val ut = topologyTestDriver.readOutput(
-                outTopic.name,
-                outTopic.keySerde.deserializer(),
-                outTopic.valueSerde.deserializer()
-            )
-
-            ut shouldNotBe null
+            topologyTestDriver.subsumsjonInputTopic().also {
+                it.pipeInput(json)
+                assertFalse { topologyTestDriver.subsumsjonOutputTopic().isEmpty }
+            }
         }
 
         verify(exactly = 1) { regelApiClient.subsumsjon(subsumsjonId) }
@@ -140,22 +105,27 @@ internal class DatalasterSubsumsjonbruktStreamTest {
         val stream = DatalasterSubsumsjonbruktStream(regelApiClient, Configuration())
 
         TopologyTestDriver(stream.buildTopology(), config).use { topologyTestDriver ->
-            val inputRecord = factory.create(
+            val json =
                 """
                 { "id" : "${subsumsjonId.id}" }
                 """.trimIndent()
-            )
-            topologyTestDriver.pipeInput(inputRecord)
-
-            val ut = topologyTestDriver.readOutput(
-                outTopic.name,
-                outTopic.keySerde.deserializer(),
-                outTopic.valueSerde.deserializer()
-            )
-
-            ut shouldBe null
+            topologyTestDriver.subsumsjonInputTopic().also { it.pipeInput(json) }
         }
 
         verify(exactly = 1) { regelApiClient.subsumsjon(subsumsjonId) }
     }
 }
+
+private fun TopologyTestDriver.subsumsjonInputTopic(): TestInputTopic<String, String> =
+    this.createInputTopic(
+        inTopic.name,
+        inTopic.keySerde.serializer(),
+        inTopic.valueSerde.serializer()
+    )
+
+private fun TopologyTestDriver.subsumsjonOutputTopic(): TestOutputTopic<String, String> =
+    this.createOutputTopic(
+        outTopic.name,
+        outTopic.keySerde.deserializer(),
+        outTopic.valueSerde.deserializer()
+    )
